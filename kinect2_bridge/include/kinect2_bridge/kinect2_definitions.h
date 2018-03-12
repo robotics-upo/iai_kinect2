@@ -30,6 +30,7 @@
 #define K2_TOPIC_HD            "/hd"
 #define K2_TOPIC_QHD           "/qhd"
 #define K2_TOPIC_SD            "/sd"
+#define K2_TOPIC_ID            "/id"
 
 #define K2_TOPIC_IMAGE_RECT    "_rect"
 #define K2_TOPIC_IMAGE_COLOR   "/image_color"
@@ -53,5 +54,6 @@
 #define K2_CALIB_ESSENTIAL     "essential"
 #define K2_CALIB_FUNDAMENTAL   "fundamental"
 #define K2_CALIB_DEPTH_SHIFT   "depthShift"
+
 
 #endif //__KINECT2_DEFINITIONS_H__

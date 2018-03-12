@@ -42,6 +42,7 @@
 #include <sensor_msgs/Image.h>
 #include <sensor_msgs/CompressedImage.h>
 #include <sensor_msgs/image_encodings.h>
+#include <std_msgs/String.h>
 
 #include <tf/transform_broadcaster.h>
 
@@ -129,9 +130,10 @@ private:
   };
 
   std::vector<ros::Publisher> imagePubs, compressedPubs;
-  ros::Publisher infoHDPub, infoQHDPub, infoIRPub;
+  ros::Publisher infoHDPub, infoQHDPub, infoIRPub, IDPub;
   sensor_msgs::CameraInfo infoHD, infoQHD, infoIR;
   std::vector<Status> status;
+  std::string camera_ID;
 
 public:
   Kinect2Bridge(const ros::NodeHandle &nh = ros::NodeHandle(), const ros::NodeHandle &priv_nh = ros::NodeHandle("~"))
@@ -215,6 +217,7 @@ public:
       infoHDPub.shutdown();
       infoQHDPub.shutdown();
       infoIRPub.shutdown();
+      IDPub.shutdown();
     }
 
     nh.shutdown();
@@ -516,6 +519,8 @@ private:
     infoHDPub = nh.advertise<sensor_msgs::CameraInfo>(base_name + K2_TOPIC_HD + K2_TOPIC_INFO, queueSize, cb, cb);
     infoQHDPub = nh.advertise<sensor_msgs::CameraInfo>(base_name + K2_TOPIC_QHD + K2_TOPIC_INFO, queueSize, cb, cb);
     infoIRPub = nh.advertise<sensor_msgs::CameraInfo>(base_name + K2_TOPIC_SD + K2_TOPIC_INFO, queueSize, cb, cb);
+    IDPub = nh.advertise<std_msgs::String>(base_name + K2_TOPIC_ID, queueSize, cb, cb);
+    
   }
 
   bool initDevice(std::string &sensor)
@@ -540,6 +545,10 @@ private:
     {
       const std::string &s = freenect2.getDeviceSerialNumber(i);
       deviceFound = deviceFound || s == sensor;
+      if(s == sensor)
+      {
+		camera_ID = s;
+	  }
       OUT_INFO("  " << i << ": " FG_CYAN << s << (s == sensor ? FG_YELLOW " (selected)" : "") << NO_COLOR);
     }
 
@@ -777,9 +786,10 @@ private:
   {
     bool isSubscribedDepth = false;
     bool isSubscribedColor = false;
+    bool isSubscribedID = false;
 
     lockStatus.lock();
-    clientConnected = updateStatus(isSubscribedColor, isSubscribedDepth);
+    clientConnected = updateStatus(isSubscribedColor, isSubscribedDepth, isSubscribedID);
     bool error = false;
 
     if(clientConnected && !deviceActive)
@@ -832,10 +842,11 @@ private:
     }
   }
 
-  bool updateStatus(bool &isSubscribedColor, bool &isSubscribedDepth)
-  {
+  bool updateStatus(bool &isSubscribedColor, bool &isSubscribedDepth, bool &isSubscribedID)
+  {	  
     isSubscribedDepth = false;
     isSubscribedColor = false;
+    isSubscribedID = false;
 
     for(size_t i = 0; i < COUNT; ++i)
     {
@@ -868,8 +879,14 @@ private:
     {
       isSubscribedDepth = true;
     }
+    if(IDPub.getNumSubscribers() > 0)
+    {
+      isSubscribedID = true;
+      IDPub.publish(camera_ID);
+    }    
+    
 
-    return isSubscribedColor || isSubscribedDepth;
+    return isSubscribedColor || isSubscribedDepth || isSubscribedID;
   }
 
   void main()
@@ -1265,6 +1282,7 @@ private:
 
   void publishImages(const std::vector<cv::Mat> &images, const std_msgs::Header &header, const std::vector<Status> &status, const size_t frame, size_t &pubFrame, const size_t begin, const size_t end)
   {
+	 	  
     std::vector<sensor_msgs::ImagePtr> imageMsgs(COUNT);
     std::vector<sensor_msgs::CompressedImagePtr> compressedMsgs(COUNT);
     sensor_msgs::CameraInfoPtr infoHDMsg,  infoQHDMsg,  infoIRMsg;
@@ -1366,6 +1384,7 @@ private:
         infoQHDPub.publish(infoQHDMsg);
       }
     }
+
 
     ++pubFrame;
     lockPub.unlock();
