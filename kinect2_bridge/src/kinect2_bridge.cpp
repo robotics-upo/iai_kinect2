@@ -133,7 +133,7 @@ private:
   ros::Publisher infoHDPub, infoQHDPub, infoIRPub, IDPub;
   sensor_msgs::CameraInfo infoHD, infoQHD, infoIR;
   std::vector<Status> status;
-  std::string camera_ID;
+  std_msgs::String camera_ID;
 
 public:
   Kinect2Bridge(const ros::NodeHandle &nh = ros::NodeHandle(), const ros::NodeHandle &priv_nh = ros::NodeHandle("~"))
@@ -547,7 +547,7 @@ private:
       deviceFound = deviceFound || s == sensor;
       if(s == sensor)
       {
-		camera_ID = s;
+		camera_ID.data = s;
 	  }
       OUT_INFO("  " << i << ": " FG_CYAN << s << (s == sensor ? FG_YELLOW " (selected)" : "") << NO_COLOR);
     }
