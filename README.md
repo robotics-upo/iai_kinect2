@@ -142,7 +142,7 @@ If you found no solution in the issues, feel free to open a new issue for your p
 
 ```
 cd ~/catkin_ws/src/
-git clone https://github.com/code-iai/iai_kinect2.git
+git clone https://github.com/robotics-upo/iai_kinect2.git
 cd iai_kinect2
 rosdep install -r --from-paths .
 cd ~/catkin_ws
