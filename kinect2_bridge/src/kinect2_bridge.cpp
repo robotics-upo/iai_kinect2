@@ -376,6 +376,7 @@ private:
 
     registration = new libfreenect2::Registration(irParams, colorParams);
 
+	std::cout<<"Test registration"<<std::endl<<std::endl<<std::endl<<std::endl<<std::endl<<std::endl<<std::endl;
     return true;
   }
 
@@ -641,6 +642,12 @@ private:
 
     struct stat fileStat;
     bool calibDirNotFound = stat(calibPath.c_str(), &fileStat) != 0 || !S_ISDIR(fileStat.st_mode);
+    // If ID of the sensor is not found in data folder, use the default parameters
+    if(calibDirNotFound)
+    {
+		calibPath = calib_path;
+		calibDirNotFound = stat(calibPath.c_str(), &fileStat) != 0 || !S_ISDIR(fileStat.st_mode);
+	}
     if(calibDirNotFound || !loadCalibrationFile(calibPath + K2_CALIB_COLOR, cameraMatrixColor, distortionColor))
     {
       OUT_WARN("using sensor defaults for color intrinsic parameters.");
